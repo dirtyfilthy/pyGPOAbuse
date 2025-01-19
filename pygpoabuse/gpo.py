@@ -183,15 +183,17 @@ class GPO:
                                powershell=powershell, command=command, old_value=st_content)
             tasks = st.parse_tasks(st_content)
 
-            if not force:
+            if not force or replace:
                 logging.error("The GPO already includes a ScheduledTasks.xml.")
                 logging.error("Use -f to append to ScheduledTasks.xml")
+                logging.error("Use -r to replace ScheduledTasks.xml")
                 logging.error("Use -v to display existing tasks")
                 logging.warning("C: Create, U: Update, D: Delete, R: Replace")
                 for task in tasks:
                     logging.warning("[{}] {} (Type: {})".format(task[0], task[1], task[2]))
                 return False
-
+            if replace:
+                st = ScheduledTask(gpo_type=gpo_type, name=name, mod_date=mod_date, description=description, powershell=powershell, command=command)
             new_content = st.generate_scheduled_task_xml()
         except Exception as e:
             # File does not exist
