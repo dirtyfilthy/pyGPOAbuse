@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 This tool is a partial python implementation of SharpGPOAbuse
 https://github.com/FSecureLABS/SharpGPOAbuse
