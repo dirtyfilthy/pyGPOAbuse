@@ -177,6 +177,8 @@ class GPO:
         try:
             fid = self._smb_session.openFile(tid, path)
             st_content = self._smb_session.readFile(tid, fid, singleCall=False).decode("utf-8")
+            if replace:
+                st_content = ""
             st = ScheduledTask(gpo_type=gpo_type, name=name, mod_date=mod_date, description=description, powershell=powershell, command=command, old_value=st_content, filter_gpo=filter_gpo, samaccount=samaccount, user_sid=user_sid, task_version=task_version,archivo=archivo)
             tasks = st.parse_tasks(st_content)
 
@@ -189,8 +191,7 @@ class GPO:
                 for task in tasks:
                     logging.warning("[{}] {} (Type: {})".format(task[0], task[1], task[2]))
                 return False
-            if replace:
-                st = ScheduledTask(gpo_type=gpo_type, name=name, mod_date=mod_date, description=description, powershell=powershell, command=command, old_value=st_content, filter_gpo=filter_gpo, samaccount=samaccount, user_sid=user_sid, task_version=task_version,archivo=archivo)
+           
             new_content = st.generate_scheduled_task_xml()
         except Exception as e:
             # File does not exist
@@ -201,7 +202,7 @@ class GPO:
             except:
                 logging.error("This user doesn't seem to have the necessary rights", exc_info=True)
                 return False
-            st = ScheduledTask(gpo_type=gpo_type, name=name, mod_date=mod_date, description=description, powershell=powershell, command=command, old_value=st_content, filter_gpo=filter_gpo, samaccount=samaccount, user_sid=user_sid, task_version=task_version,archivo=archivo)
+            st = ScheduledTask(gpo_type=gpo_type, name=name, mod_date=mod_date, description=description, powershell=powershell, command=command, old_value="", filter_gpo=filter_gpo, samaccount=samaccount, user_sid=user_sid, task_version=task_version,archivo=archivo)
             new_content = st.generate_scheduled_task_xml()
 
         try:
