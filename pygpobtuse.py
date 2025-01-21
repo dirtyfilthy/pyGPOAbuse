@@ -129,8 +129,8 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    if options.filefilter:
-        archivo = options.filefilter
+    if options.filterfile:
+        archivo = options.filterfile
     else:
         archivo = "NOT_NEEDING"
 
