@@ -84,7 +84,7 @@ class GPO:
             return False
 
         version = await ldap.get_attribute("versionNumber")
-        
+        logging.debug("Current version number : {}".format(version))
         # update versions in line with 
         # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpol/70fd86b1-926a-4dcf-9ce7-6f9d2149c20d
 

@@ -16,6 +16,10 @@ import sys
 from impacket.smbconnection import SMBConnection
 from impacket.examples.utils import parse_credentials
 
+import pygpobtuse.msldap_monkeypatch as msldap_monkeypatch
+
+msldap_monkeypatch.patch()
+
 from pygpobtuse import logger
 from pygpobtuse.gpo import GPO
 
