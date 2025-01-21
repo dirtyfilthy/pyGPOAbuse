@@ -83,7 +83,7 @@ if options.filter:
     else:
         print("You need add the computer's SID and samaccount which is going to apply the filters or a file with samaccount:SID")
         exit()
-
+print(f"domain: {domain})")
 if options.dc_ip:
     dc_ip = options.dc_ip
 else:

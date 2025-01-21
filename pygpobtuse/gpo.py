@@ -85,12 +85,23 @@ class GPO:
 
         version = await ldap.get_attribute("versionNumber")
         
+        # update versions in line with 
+        # https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpol/70fd86b1-926a-4dcf-9ce7-6f9d2149c20d
+
+        user_version = version >> 16
+        machine_version = version & 0xFFFF 
+
         if gpo_type == "computer":
             attribute_name = "gPCMachineExtensionNames"
-            updated_version = version + 1
+            machine_version = (machine_version + 1) & 0xFFFF
+            machine_version = 1 if machine_version == 0 else machine_version
         else:
             attribute_name = "gPCUserExtensionNames"
-            updated_version = version + 65536
+            user_version = (user_version + 1) & 0xFFFF
+            user_version = 1 if user_version == 0 else user_version
+
+
+        updated_version = (user_version << 16) + machine_version
 
         extensionName = await ldap.get_attribute(attribute_name)
 
