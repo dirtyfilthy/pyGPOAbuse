@@ -12,6 +12,10 @@ Default behavior adds a local administrator.
 
 # Changelog
 
+## 20/01/2024
+
+* Added monkeypatch for broken single_int conversion in msldap, and also pushed merge request with fix upstream.
+
 ## 19/01/2024
 
 * Added ability to replace existing ScheduledTask
